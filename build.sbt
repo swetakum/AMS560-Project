@@ -1,4 +1,4 @@
-name := "Reader"
+name := "Project"
 
 version := "0.1"
 

@@ -2,3 +2,6 @@
 Data/Live/
 project
 target
+metastore_db
+.DS_Store
+derby.log
