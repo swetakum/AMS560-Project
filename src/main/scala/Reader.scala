@@ -15,11 +15,10 @@ object Reader {
 		val sparkConf = new SparkConf()
 			.setAppName("Reader")
 			.set("spark.driver.allowMultipleContexts", "true")
-
-		val ssc = new StreamingContext(sparkConf, Seconds(10))
-		val sc = new SparkContext(sparkConf)
+		val ssc = new StreamingContext(sparkConf, Seconds(3))
 
 		val spark = SparkSession.builder.getOrCreate()
+		val sc = new SparkContext(sparkConf)
 		import spark.implicits._
 
 		val lines = ssc.textFileStream("Data/Live/")
@@ -37,7 +36,8 @@ object Reader {
 		lines.foreachRDD{ rdd =>
 			val data = rdd.map(_.split(" ").to[List]).map(row)
 			var df = spark.createDataFrame(data, csvSchema)
-			
+			// df = df.union(df)
+			// df.count()
 			state = state.union(df)
 			// state.show()
 
@@ -50,6 +50,12 @@ object Reader {
 			var ns = state
 			ns.show()
 		}
+
+		// val words = lines.flatMap(_.split(" "))
+		// val wordCounts = words.map(x => (x, 1)).reduceByKey(_ + _)
+		// // wordCounts.print()
+		// lines.print()
+
 
 		ssc.start()
 		ssc.awaitTermination()
