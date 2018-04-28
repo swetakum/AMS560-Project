@@ -1,3 +1,5 @@
+package main.scala
+
 import org.apache.spark.SparkConf
 import org.apache.spark._
 import org.apache.spark.streaming._
@@ -42,8 +44,8 @@ object Reader {
 			// state.show()
 
 			// df.createOrReplaceTempView("people")
-	    // val sqlDf = spark.sql("SELECT AVG(col2) FROM people WHERE col3 > (SELECT AVG(col3) FROM people)")
 	    // sqlDf.show()
+			// val sqlDf = spark.sql("SELECT AVG(col2) FROM people WHERE col3 > (SELECT AVG(col3) FROM people)")
 
 			// state.printSchema()
 
