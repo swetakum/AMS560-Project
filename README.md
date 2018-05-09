@@ -1,8 +1,11 @@
 # AMS560-Project
 
+## Requirements
+### pyspark
+`pip install pyspark`
+
 ## Usage
-`sbt package`
+`python src/main/python/stream.py`
 
-`spark-submit --class Reader --master local target/scala-2.11/reader_2.11-0.1.jar`
-
-`sh GenDataSmall.sh`
+### In another terminal
+`./GenData.sh Small`

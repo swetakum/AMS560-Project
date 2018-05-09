@@ -1,7 +1,10 @@
-# Ignore folders
-Data/Live/
+# Ignore files and folders
 project
 target
 metastore_db
 .DS_Store
 derby.log
+.idea/
+.vscode/
+metastore_db/
+spark-warehouse/

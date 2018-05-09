@@ -5,10 +5,6 @@ from pyspark.sql.types import *
 from pyspark.sql import SparkSession
 from pyspark.sql.session import *
 
-# import re
-# pattern = re.compile('AVG\((.*?)\)')
-# innerCol = pattern.search(wordQuery).group(1)
-
 
 class Reader():
     def __init__(self):
