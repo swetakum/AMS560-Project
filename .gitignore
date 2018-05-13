@@ -8,4 +8,5 @@ derby.log
 .vscode/
 metastore_db/
 spark-warehouse/
-Data/Live/
+Data/**
+!Data/Gen.py
