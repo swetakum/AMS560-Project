@@ -4,7 +4,7 @@ from pyspark.sql.types import Row
 from pyspark.sql.types import *
 from pyspark.sql import SparkSession
 from pyspark.sql.session import *
-
+import time
 
 class Reader():
     def __init__(self):
@@ -12,6 +12,7 @@ class Reader():
         self.ssc = StreamingContext(self.sc, batchDuration=3)
         self.spark = SparkSession.builder\
             .getOrCreate()
+        self.sc.setLogLevel('ERROR')
 
     def initStream(self):
         self.readInput()
@@ -63,10 +64,13 @@ class Reader():
         # self.stateDF.show()
         self.globalDF = self.spark.createDataFrame(self.sc.emptyRDD(), self.csvSchema)
         
+        self.totalTime = 0.0
+
         def row(inpStr):
             return Row(int(inpStr[0]), int(inpStr[1]), int(inpStr[2]))
 
         def iterateRDD(rdd):
+            start = time.clock()
             data = rdd.map(lambda line: line.split(' ')).map(row)
             df = data.toDF(self.csvSchema)
 
@@ -76,9 +80,11 @@ class Reader():
                 self.queryRDD(curDF)
 
                 # Append to global DF for batch outputs
-                self.globalDF = df.union(self.globalDF)
+                # self.globalDF = df.union(self.globalDF)
 
                 self.outputQuery(curDF)
+                self.totalTime += time.clock() - start
+                # print(str(round(self.totalTime, 2)) + 's')
 
         lines.foreachRDD(iterateRDD)
 
@@ -127,13 +133,13 @@ class Reader():
         curQuery = ' '.join(list(map((lambda word: str(round(self.dictInnerQuery[word][2], 2)) if word in self.dictInnerQuery else word), self.modQuery.split())))
         df.createOrReplaceTempView('table')
         streamOut = self.spark.sql(curQuery).first()[0]
-        # print(type(streamOut))
+        print(streamOut)
 
         # self.globalDF.show()
-        self.globalDF.createOrReplaceTempView('table')
-        globalOut = self.spark.sql(curQuery).first()[0]
+        # self.globalDF.createOrReplaceTempView('table')
+        # globalOut = self.spark.sql(curQuery).first()[0]
         # print(type(globalOut))
-        print(streamOut, globalOut)
+        # print(streamOut, globalOut)
 
         
 def main():

@@ -4,7 +4,7 @@ from pyspark.sql.types import Row
 from pyspark.sql.types import *
 from pyspark.sql import SparkSession
 from pyspark.sql.session import *
-
+import time
 
 class Reader():
     def __init__(self):
@@ -12,6 +12,7 @@ class Reader():
         self.ssc = StreamingContext(self.sc, batchDuration=3)
         self.spark = SparkSession.builder\
             .getOrCreate()
+        self.sc.setLogLevel('ERROR')
 
     def initStream(self):
         self.readInput()
@@ -62,11 +63,14 @@ class Reader():
         # self.stateDF = self.spark.createDataFrame(self.sc.emptyRDD(), self.csvSchema)
         # self.stateDF.show()
         self.globalDF = self.spark.createDataFrame(self.sc.emptyRDD(), self.csvSchema)
+
+        self.totalTime = 0.0
         
         def row(inpStr):
             return Row(int(inpStr[0]), int(inpStr[1]), int(inpStr[2]))
 
         def iterateRDD(rdd):
+            start = time.clock()
             data = rdd.map(lambda line: line.split(' ')).map(row)
             df = data.toDF(self.csvSchema)
 
@@ -78,6 +82,8 @@ class Reader():
                 self.globalDF = df.union(self.globalDF)
 
                 self.outputQuery(self.globalDF)
+                self.totalTime += time.clock() - start
+                # print(str(round(self.totalTime, 2)) + 's')
 
         lines.foreachRDD(iterateRDD)
 
@@ -115,24 +121,25 @@ class Reader():
         # self.stateDF.show()
 
     def outputQuery(self, df):
-        curQuery = ' '.join(list(map((lambda word: str(round(self.dictInnerQuery[word][2], 2)) if word in self.dictInnerQuery else word), self.modQuery.split())))
-        df.createOrReplaceTempView('table')
+        # curQuery = ' '.join(list(map((lambda word: str(round(self.dictInnerQuery[word][2], 2)) if word in self.dictInnerQuery else word), self.modQuery.split())))
+        # df.createOrReplaceTempView('table')
         # streamOut = self.spark.sql(curQuery).first()[0]
         # print(type(streamOut))
 
         # self.globalDF.show()
-        # self.globalDF.createOrReplaceTempView('table')
-        globalOut = self.spark.sql(curQuery).first()[0]
+        query = 'SELECT AVG(col2) FROM table WHERE col2 > (SELECT AVG(col2) FROM table)'
+        self.globalDF.createOrReplaceTempView('table')
+        globalOut = self.spark.sql(query).first()[0]
         # print(type(globalOut))
         print(globalOut)
 
         
 
 def main():
-    query = 'SELECT AVG(col2) FROM table WHERE col2 > (SELECT AVG(col2) FROM table) AND col3 > (SELECT AVG(col3) FROM table)'
+    query = 'SELECT AVG(col2) FROM table WHERE col2 > (SELECT AVG(col2) FROM table)'
     reader = Reader()
     reader.inputSQLQuery(query)
-    print(reader.modQuery)
+    # print(reader.modQuery)
     
     reader.initStream()
     
