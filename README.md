@@ -8,4 +8,4 @@
 `python src/main/python/stream.py`
 
 ### In another terminal
-`./GenData.sh Small`
+`./EmulateStreamData.sh Small`
